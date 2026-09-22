@@ -1,0 +1,11 @@
+[unstable]
+build-std = ["core"]
+json-target-spec = true
+
+[build]
+target = "i386-kernel.json"
+
+[target.'cfg(target_arch = "x86")']
+rustflags = [
+    "-C", "embed-bitcode=no",
+]
