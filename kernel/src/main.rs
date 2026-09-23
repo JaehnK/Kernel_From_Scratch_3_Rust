@@ -1,22 +1,21 @@
 #![no_std]
 #![no_main]
 
-mod dump_stack;
-mod gdt;
-mod printk;
-mod vga;
+mod klib;
+mod mm;
+mod tty;
 
-use crate::vga::*;
+use crate::tty::printk::Arg;
 
 use core::panic::PanicInfo;
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn kernel_start() -> ! {
-    gdt::init_gdt();
+    mm::gdt::init_gdt();
 
-    printk::vprintk("%d! Hello, world!\n", &[42]);
+    printk!("%d! Hello, world!\n", Arg::Int(42));
 
-    dump_stack::dump_stack();
+    klib::dump_stack::dump_stack();
     loop {}
 }
 

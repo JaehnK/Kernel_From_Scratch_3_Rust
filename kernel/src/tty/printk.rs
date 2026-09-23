@@ -1,4 +1,4 @@
-use crate::vga;
+use super::vga;
 
 fn utoa(mut n: u32, base: u32, buf: &mut [u8]) -> &[u8] {
     // b붙이는 이유: 바이트 문자열(c언어의 char *, ASCII)을 생성하기 위해
@@ -29,7 +29,7 @@ fn utoa(mut n: u32, base: u32, buf: &mut [u8]) -> &[u8] {
 #[macro_export]
 macro_rules! printk {
     ($fmt:expr $(, $arg:expr)* $(,)?) => {
-        $crate::printk::vprintk($fmt, &[$(($arg),)*]);
+        $crate::tty::printk::vprintk($fmt, &[$(($arg),)*]);
     };
 }
 
@@ -40,6 +40,7 @@ pub enum Arg<'a> {
     Int(i32),
     Hex(u32),
     Char(u8),
+    #[expect(dead_code)]
     Str(&'a str),
 }
 

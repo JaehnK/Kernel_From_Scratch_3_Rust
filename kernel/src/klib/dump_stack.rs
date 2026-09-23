@@ -1,10 +1,10 @@
 use crate::printk;
-use crate::printk::Arg;
+use crate::tty::printk::Arg;
 use core::ptr::addr_of;
 
 // boot.s의 .bss에 예약된 커널 스택의 경계.
 // 값을 읽는 것이 아니라 주소만 쓰므로 타입은 u8이면 충분하다.
-extern "C" {
+unsafe extern "C" {
     static stack_bottom: u8;
     static stack_top: u8;
 }
