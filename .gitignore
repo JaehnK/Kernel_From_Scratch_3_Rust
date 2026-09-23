@@ -26,6 +26,7 @@ rustc-ice-*.txt
 **/sample
 **/sample/**
 subject.md
+TODO.md
 
 # Build artifacts
 *.o
