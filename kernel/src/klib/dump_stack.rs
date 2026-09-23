@@ -1,5 +1,5 @@
 use crate::printk;
-use crate::printk::Arg;
+use crate::tty::printk::Arg;
 use core::ptr::addr_of;
 
 // boot.s의 .bss에 예약된 커널 스택의 경계.
