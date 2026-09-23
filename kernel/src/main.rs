@@ -9,7 +9,7 @@ use crate::tty::printk::Arg;
 
 use core::panic::PanicInfo;
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn kernel_start() -> ! {
     mm::gdt::init_gdt();
 
