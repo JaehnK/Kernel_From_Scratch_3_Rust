@@ -38,7 +38,11 @@ $(KERNEL_BIN): $(ASM_OBJ) $(RUST_SRC) $(BUILD_DEPS)
 	cp $(BUILD_BIN) $@
 	grub-file --is-x86-multiboot $@
 
-install: $(KERNEL_BIN)
+# 이미지가 없을 때만 생성 — order-only(|)라서 커널이 갱신돼도 이미지를 다시 만들지 않는다
+$(IMG):
+	sh $(KERNEL_DIR)/scripts/init-image.sh $@
+
+install: $(KERNEL_BIN) | $(IMG)
 	@set -eu; \
 	echo ">>> Mounting $(IMG)..."; \
 	loop=$$(sudo losetup --show -fP $(IMG)); \
