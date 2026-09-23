@@ -1,4 +1,5 @@
-# 루트 Makefile — 빌드 순서: boot.o(as) → cargo(rust) → kernel.bin → 이미지 설치 → qemu
+# 루트 Makefile — 빌드 순서: boot.o(as) → cargo(rust) → kernel.bin → kfs.img
+# make(all)은 GRUB 부팅 이미지까지 만들고(sudo), make run은 kernel.bin만으로 qemu를 띄운다(sudo 없음)
 # nightly 전환은 rust-toolchain.toml이, -Z 플래그는 kernel/.cargo/config.toml이 담당
 
 KERNEL_DIR  := kernel
@@ -21,10 +22,12 @@ BUILD_DEPS  := $(KERNEL_DIR)/src/linker.ld $(KERNEL_DIR)/build.rs \
 AS          := as
 AS_FLAGS    := --32
 CARGO_FLAGS := --release
+QEMU        := qemu-system-i386
+QEMU_FLAGS  := -display curses -monitor unix:/tmp/qemu-mon,server,nowait
 
-.PHONY: all build asm install run clean re
+.PHONY: all build asm run run-img clean re
 
-all: build
+all: $(IMG)
 
 build: $(KERNEL_BIN)
 
@@ -38,24 +41,28 @@ $(KERNEL_BIN): $(ASM_OBJ) $(RUST_SRC) $(BUILD_DEPS)
 	cp $(BUILD_BIN) $@
 	grub-file --is-x86-multiboot $@
 
-# 이미지가 없을 때만 생성 — order-only(|)라서 커널이 갱신돼도 이미지를 다시 만들지 않는다
-$(IMG):
-	sh $(KERNEL_DIR)/scripts/init-image.sh $@
-
-install: $(KERNEL_BIN) | $(IMG)
+# 이미지가 없으면 생성하고, kernel.bin이 이미지보다 새로울 때만 커널을 교체한다
+# 이미 최신이면 레시피가 돌지 않으므로 sudo도 묻지 않는다
+$(IMG): $(KERNEL_BIN)
+	@[ -e $@ ] || sh $(KERNEL_DIR)/scripts/init-image.sh $@
 	@set -eu; \
-	echo ">>> Mounting $(IMG)..."; \
-	loop=$$(sudo losetup --show -fP $(IMG)); \
+	echo ">>> Mounting $@..."; \
+	loop=$$(sudo losetup --show -fP $@); \
 	sudo mkdir -p $(MOUNT_POINT); \
 	sudo mount "$${loop}p1" $(MOUNT_POINT); \
 	sudo cp $(KERNEL_BIN) $(MOUNT_POINT)/boot/kernel; \
 	sudo umount $(MOUNT_POINT); \
 	sudo losetup -d "$$loop"; \
 	echo ">>> Kernel installed"
+	@touch $@
 
-run: install
-	qemu-system-i386 -drive file=$(IMG),format=raw -display curses \
-		-monitor unix:/tmp/qemu-mon,server,nowait
+# 개발용 — QEMU 내장 Multiboot 로더로 kernel.bin을 직접 부팅 (GRUB·이미지·sudo 불필요)
+run: $(KERNEL_BIN)
+	$(QEMU) -kernel $(KERNEL_BIN) $(QEMU_FLAGS)
+
+# 제출물 확인용 — kfs.img의 GRUB으로 부팅 (Multiboot 정보가 run과 다를 수 있음)
+run-img: $(IMG)
+	$(QEMU) -drive file=$(IMG),format=raw $(QEMU_FLAGS)
 
 clean:
 	rm -f $(ASM_OBJ) $(KERNEL_BIN)
