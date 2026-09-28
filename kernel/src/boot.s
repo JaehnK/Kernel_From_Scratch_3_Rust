@@ -12,6 +12,8 @@
 .type _start, @function
 _start:
     mov $stack_top, %esp
+    push %ebx # Multiboot 정보 구조체의 물리 주소, 두번째 인자
+    push %eax # info - 0x2BADBOO2 : 멀티부트의 매직 시그널 첫번째 인자
     call kernel_start
     cli
 1:  hlt
