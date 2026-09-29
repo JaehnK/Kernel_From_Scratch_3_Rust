@@ -18,6 +18,7 @@ pub extern "C" fn kernel_start(magic: u32, info: u32) -> ! {
         panic!("Invalid magic number: {:#x}", magic);
     }
 
+    klib::multiboot::parse_multiboot_info(info);
     printk!("%d! Hello, world!\n", Arg::Int(42));
 
     klib::dump_stack::dump_stack();
