@@ -5,12 +5,11 @@ mod klib;
 mod mm;
 mod tty;
 
-use crate::tty::printk::Arg;
-
 use core::panic::PanicInfo;
 
 #[unsafe(no_mangle)]
 pub extern "C" fn kernel_start(magic: u32, info: u32) -> ! {
+    tty::init();
     mm::gdt::init_gdt();
 
     // 멀티부트 부팅을 위한 매직 시그널 확인

@@ -77,3 +77,14 @@ fn scroll() {
         }
     }
 }
+
+pub fn clear() {
+    unsafe {
+        let blank = (CHAR_ATTR as u16) << 8 | b' ' as u16;
+        for i in 0..(25 * 80) {
+            VGA_BUFFER.add(i).write_volatile(blank);
+        }
+        CURSOR.col = 0;
+        CURSOR.row = 0;
+    }
+}
