@@ -15,6 +15,7 @@ pub extern "C" fn kernel_start(magic: u32, info: u32) -> ! {
 
     let boot = klib::multiboot::MultibootInfo::load(magic, info).expect("multiboot boot info");
     printk!("%d! Hello, world!\n", Arg::Int(42));
+
     let mem_info = boot.mem_info().expect("Failed to get memory info");
     let mmap_info = boot.mmap_info().expect("Failed to get mmap info");
     printk!(

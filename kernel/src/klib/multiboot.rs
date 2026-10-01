@@ -1,4 +1,6 @@
 const MULTIBOOT_MAGIC: u32 = 0x2BADB002;
+const FLAG_MEM: u32 = 1 << 0; // mem_lower, mem_upper 유효
+const FLAG_MMAP: u32 = 1 << 6; // mmap_length, mmap_addr 유효
 
 // https://www.gnu.org/software/grub/manual/multiboot/multiboot.html
 // 3.3 Boot Information Format 기반으로 작성
@@ -46,12 +48,14 @@ impl MultibootInfo {
         if info == 0 {
             return Err(BootError::NullInfo);
         }
-
+        // SAFETY: magic이 0x2BADB002이면 Multiboot 스펙상 ebx(info)는
+        // 로더가 만든 유효한 정보 구조체의 물리 주소다.
+        // 이 영역은 pmm에서 예약해 덮어쓰지 않으므로 'static으로 다룬다.
         Ok(unsafe { &*(info as *const MultibootInfo) })
     }
 
     pub fn mmap_info(&self) -> Option<MmapInfo> {
-        if self.flags & (1 << 6) == 0 {
+        if self.flags & FLAG_MMAP == 0 {
             None
         } else {
             Some(MmapInfo {
@@ -62,7 +66,7 @@ impl MultibootInfo {
     }
 
     pub fn mem_info(&self) -> Option<MemInfo> {
-        if self.flags & (1 << 0) == 0 {
+        if self.flags & FLAG_MEM == 0 {
             None
         } else {
             Some(MemInfo {
