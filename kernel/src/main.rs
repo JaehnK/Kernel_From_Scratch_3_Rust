@@ -15,17 +15,18 @@ pub extern "C" fn kernel_start(magic: u32, info: u32) -> ! {
 
     let boot = klib::multiboot::MultibootInfo::load(magic, info).expect("multiboot boot info");
     printk!("%d! Hello, world!\n", Arg::Int(42));
+    let mem_info = boot.mem_info().expect("Failed to get memory info");
+    let mmap_info = boot.mmap_info().expect("Failed to get mmap info");
     printk!(
-        "Mem: %p, %p\n",
-        Arg::Hex(boot.mem_info().unwrap().lower),
-        Arg::Hex(boot.mem_info().unwrap().upper)
+        "Memory Info: lower: %d KB, upper: %d KB\n",
+        Arg::Int(mem_info.lower as i32),
+        Arg::Int(mem_info.upper as i32)
     );
     printk!(
-        "Mmap: %p, %p\n",
-        Arg::Hex(boot.mmap_info().unwrap().addr),
-        Arg::Hex(boot.mmap_info().unwrap().length)
+        "Mmap Info: length: %d, addr: 0x%p\n",
+        Arg::Int(mmap_info.length as i32),
+        Arg::Hex(mmap_info.addr)
     );
-
     klib::dump_stack::dump_stack();
     loop {}
 }
