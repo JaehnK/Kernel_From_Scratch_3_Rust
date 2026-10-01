@@ -5,6 +5,7 @@ mod klib;
 mod mm;
 mod tty;
 
+use crate::tty::printk::Arg;
 use core::panic::PanicInfo;
 
 #[unsafe(no_mangle)]
@@ -12,13 +13,18 @@ pub extern "C" fn kernel_start(magic: u32, info: u32) -> ! {
     tty::init();
     mm::gdt::init_gdt();
 
-    // 멀티부트 부팅을 위한 매직 시그널 확인
-    if magic != 0x2BADB002 {
-        panic!("Invalid magic number: {:#x}", magic);
-    }
-
-    klib::multiboot::parse_multiboot_info(info);
+    let boot = klib::multiboot::MultibootInfo::load(magic, info).expect("multiboot boot info");
     printk!("%d! Hello, world!\n", Arg::Int(42));
+    printk!(
+        "Mem: %p, %p\n",
+        Arg::Hex(boot.mem_info().unwrap().lower),
+        Arg::Hex(boot.mem_info().unwrap().upper)
+    );
+    printk!(
+        "Mmap: %p, %p\n",
+        Arg::Hex(boot.mmap_info().unwrap().addr),
+        Arg::Hex(boot.mmap_info().unwrap().length)
+    );
 
     klib::dump_stack::dump_stack();
     loop {}
