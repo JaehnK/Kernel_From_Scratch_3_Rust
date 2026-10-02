@@ -28,6 +28,13 @@ pub extern "C" fn kernel_start(magic: u32, info: u32) -> ! {
         Arg::Int(mmap_info.length as i32),
         Arg::Hex(mmap_info.addr)
     );
+
+    let (bottom, top) = mm::pmm::kernel_range();
+    printk!(
+        "Kernel Range: bottom: 0x%p, top: 0x%p\n",
+        Arg::Hex(bottom),
+        Arg::Hex(top)
+    );
     klib::dump_stack::dump_stack();
     loop {}
 }

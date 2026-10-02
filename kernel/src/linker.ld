@@ -2,6 +2,7 @@ ENTRY(_start)
 
 SECTIONS {
     . = 1M;
+    _kernel_start = .;
 
     .text :
     {
@@ -28,6 +29,8 @@ SECTIONS {
         *(.bss.*)
         *(COMMON)
     }
+
+    _kernel_end = .;
 
     /DISCARD/ :
     {
