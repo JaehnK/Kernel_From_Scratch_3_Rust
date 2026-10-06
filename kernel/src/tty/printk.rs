@@ -9,7 +9,7 @@ struct VgaWriter;
 impl Write for VgaWriter {
     // 필수 메서드는 write_str 하나뿐이다.
     // write_fmt는 Write 트레이트가 기본으로 제공하며, 포맷을 풀어 이 함수를 여러 번 호출한다.
-    // write_fmt는 추상 함수와 유사한 형태로 시그니처만 존재하는 형태임
+    // write_str은 추상 함수처럼 시그니처만 있어서 우리가 구현 필요
     fn write_str(&mut self, s: &str) -> fmt::Result {
         vga::put_str(s);
         Ok(())

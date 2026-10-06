@@ -31,5 +31,6 @@ TODO.md
 # Build artifacts
 *.o
 kernel.bin
+kernel-panic.bin
 kfs.img
 

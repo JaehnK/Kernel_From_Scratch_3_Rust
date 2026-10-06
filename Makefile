@@ -7,6 +7,8 @@ TARGET      := i386-kernel
 KERNEL_BIN  := kernel.bin
 BUILD_BIN   := $(KERNEL_DIR)/target/$(TARGET)/release/kernel
 IMG         := kfs.img
+PANIC_BIN   := kernel-panic.bin
+PANIC_TEST  ?= panic
 MOUNT_POINT := /tmp/kfs_mount
 
 ASM_SRC     := $(KERNEL_DIR)/src/boot.s
@@ -25,7 +27,7 @@ CARGO_FLAGS := --release
 QEMU        := qemu-system-i386
 QEMU_FLAGS  := -display curses -monitor unix:/tmp/qemu-mon,server,nowait
 
-.PHONY: all build asm run run-img clean re
+.PHONY: all build asm run run-img run-panic clean re
 
 all: $(IMG)
 
@@ -64,8 +66,16 @@ run: $(KERNEL_BIN)
 run-img: $(IMG)
 	$(QEMU) -drive file=$(IMG),format=raw $(QEMU_FLAGS)
 
+# 평가 시연용 — 패닉 테스트를 켠 커널로 부팅. 시나리오: panic(기본) | oob | unwrap | magic
+# 예: make run-panic PANIC_TEST=oob
+# kernel.bin과 파일을 분리해 정상 빌드와 섞이지 않게 하고, 시나리오가 바뀔 수 있으므로 매번 cargo를 호출한다
+run-panic: $(ASM_OBJ)
+	cd $(KERNEL_DIR) && PANIC_TEST=$(PANIC_TEST) cargo build $(CARGO_FLAGS) --features panic-test
+	cp $(BUILD_BIN) $(PANIC_BIN)
+	$(QEMU) -kernel $(PANIC_BIN) $(QEMU_FLAGS)
+
 clean:
-	rm -f $(ASM_OBJ) $(KERNEL_BIN)
+	rm -f $(ASM_OBJ) $(KERNEL_BIN) $(PANIC_BIN)
 	cd $(KERNEL_DIR) && cargo clean
 
 re: clean all
