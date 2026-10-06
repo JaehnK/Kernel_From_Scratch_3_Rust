@@ -25,12 +25,6 @@ pub fn put_char(c: u8) {
     }
 }
 
-pub fn put_bytes(c: &[u8]) {
-    for &b in c {
-        put_char(b);
-    }
-}
-
 fn put_glyph(c: u8) {
     let glyph = (CHAR_ATTR as u16) << 8 | c as u16;
     unsafe {
