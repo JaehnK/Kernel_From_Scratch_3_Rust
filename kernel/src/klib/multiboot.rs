@@ -1,3 +1,5 @@
+use core::fmt;
+
 const MULTIBOOT_MAGIC: u32 = 0x2BADB002;
 #[expect(dead_code, reason = "feat/pmm에서 사용 예정")]
 const FLAG_MEM: u32 = 1 << 0; // mem_lower, mem_upper 유효
@@ -21,10 +23,18 @@ pub struct MultibootInfo {
 }
 
 #[derive(Debug)]
-#[expect(dead_code)]
 pub enum BootError {
     InvalidMagic(u32), // 실제로 받은 magic 값
     NullInfo,          // info 주소가 0
+}
+
+impl fmt::Display for BootError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            BootError::InvalidMagic(magic) => write!(f, "Invalid magic number: {:#010x}", magic),
+            BootError::NullInfo => write!(f, "Null info pointer"),
+        }
+    }
 }
 
 #[expect(dead_code, reason = "feat/pmm에서 사용 예정")]

@@ -44,7 +44,7 @@ pub fn panic_tester(info: u32) -> ! {
         }
         // Result::expect 실패: 잘못된 Multiboot magic
         "magic" => {
-            MultibootInfo::load(0x1234, info).expect("multiboot boot info");
+            MultibootInfo::load(0x1234, info).unwrap_or_else(|e| panic!("multiboot: {}", e));
         }
 
         "warn" => {
