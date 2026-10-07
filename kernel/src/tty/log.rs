@@ -3,7 +3,11 @@ use core::fmt::{self, Write};
 
 pub enum LogLevel {
     Info,
-    #[expect(dead_code, reason = "일반 빌드에서는 warn!을 아직 쓰지 않음 (panic_tester에서만 사용)")]
+    // 시연 빌드(panic-test)에서는 warn!이 쓰이므로 일반 빌드일 때만 expect를 건다
+    #[cfg_attr(
+        not(feature = "panic-test"),
+        expect(dead_code, reason = "일반 빌드에서는 warn!을 아직 쓰지 않음")
+    )]
     Warn,
     Panic,
 }
