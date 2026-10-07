@@ -1,5 +1,9 @@
+use core::fmt;
+
 const MULTIBOOT_MAGIC: u32 = 0x2BADB002;
+#[expect(dead_code, reason = "feat/pmm에서 사용 예정")]
 const FLAG_MEM: u32 = 1 << 0; // mem_lower, mem_upper 유효
+#[expect(dead_code, reason = "feat/pmm에서 사용 예정")]
 const FLAG_MMAP: u32 = 1 << 6; // mmap_length, mmap_addr 유효
 
 // https://www.gnu.org/software/grub/manual/multiboot/multiboot.html
@@ -19,17 +23,27 @@ pub struct MultibootInfo {
 }
 
 #[derive(Debug)]
-#[expect(dead_code)]
 pub enum BootError {
     InvalidMagic(u32), // 실제로 받은 magic 값
     NullInfo,          // info 주소가 0
 }
 
+impl fmt::Display for BootError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            BootError::InvalidMagic(magic) => write!(f, "Invalid magic number: {:#010x}", magic),
+            BootError::NullInfo => write!(f, "Null info pointer"),
+        }
+    }
+}
+
+#[expect(dead_code, reason = "feat/pmm에서 사용 예정")]
 pub struct MemInfo {
     pub lower: u32,
     pub upper: u32,
 }
 
+#[expect(dead_code, reason = "feat/pmm에서 사용 예정")]
 pub struct MmapInfo {
     pub length: u32,
     pub addr: u32,
@@ -54,6 +68,7 @@ impl MultibootInfo {
         Ok(unsafe { &*(info as *const MultibootInfo) })
     }
 
+    #[expect(dead_code, reason = "feat/pmm에서 사용 예정")]
     pub fn mmap_info(&self) -> Option<MmapInfo> {
         if self.flags & FLAG_MMAP == 0 {
             None
@@ -65,6 +80,7 @@ impl MultibootInfo {
         }
     }
 
+    #[expect(dead_code, reason = "feat/pmm에서 사용 예정")]
     pub fn mem_info(&self) -> Option<MemInfo> {
         if self.flags & FLAG_MEM == 0 {
             None

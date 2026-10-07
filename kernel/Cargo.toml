@@ -6,6 +6,10 @@ edition = "2024"
 [dependencies]
 kernel_utils = { path = "../kernel_utils" }
 
+[features]
+# 평가 시연용 패닉 시나리오 (make run-panic)
+panic-test = []
+
 [profile.dev]
 panic = "abort"
 [profile.release]

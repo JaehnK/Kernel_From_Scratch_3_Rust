@@ -1,7 +1,8 @@
 use kernel_utils::memmove;
 
 const VGA_BUFFER: *mut u16 = 0xb8000 as *mut u16; // u16으로 하는 이유는 2바이트로 구성된 문자와 속성을 함께 저장하기 위해서, 즉, 포인터 최소 단위와 글자 단위를 맞추기 위함
-const CHAR_ATTR: u8 = 0x0f;
+
+const DEFAULT_COLOR: u8 = 0x0f;
 
 struct Cursor {
     col: usize,
@@ -10,29 +11,27 @@ struct Cursor {
 static mut CURSOR: Cursor = Cursor { col: 0, row: 0 };
 
 pub fn put_str(s: &str) {
+    put_str_attr(s, DEFAULT_COLOR);
+}
+
+pub fn put_str_attr(s: &str, attr: u8) {
     for b in s.bytes() {
-        put_char(b);
+        put_char_attr(b, attr);
     }
 }
 
-pub fn put_char(c: u8) {
+fn put_char_attr(c: u8, attr: u8) {
     match c {
         b'\n' => newline(),
         b'\r' => unsafe {
             CURSOR.col = 0;
         }, // carriage return
-        _ => put_glyph(c),
+        _ => put_glyph_attr(c, attr),
     }
 }
 
-pub fn put_bytes(c: &[u8]) {
-    for &b in c {
-        put_char(b);
-    }
-}
-
-fn put_glyph(c: u8) {
-    let glyph = (CHAR_ATTR as u16) << 8 | c as u16;
+fn put_glyph_attr(c: u8, attr: u8) {
+    let glyph = (attr as u16) << 8 | c as u16;
     unsafe {
         VGA_BUFFER
             .add(CURSOR.row * 80 + CURSOR.col)
@@ -71,7 +70,7 @@ fn scroll() {
         );
 
         // 마지막 줄을 빈 셀로 채우기
-        let blank = (CHAR_ATTR as u16) << 8 | b' ' as u16;
+        let blank = (DEFAULT_COLOR as u16) << 8 | b' ' as u16;
         for i in 0..80 {
             VGA_BUFFER.add(24 * 80 + i).write_volatile(blank);
         }
@@ -80,7 +79,7 @@ fn scroll() {
 
 pub fn clear() {
     unsafe {
-        let blank = (CHAR_ATTR as u16) << 8 | b' ' as u16;
+        let blank = (DEFAULT_COLOR as u16) << 8 | b' ' as u16;
         for i in 0..(25 * 80) {
             VGA_BUFFER.add(i).write_volatile(blank);
         }

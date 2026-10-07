@@ -1,5 +1,4 @@
 use crate::printk;
-use crate::tty::printk::Arg;
 use core::ptr::addr_of;
 
 // boot.s의 .bss에 예약된 커널 스택의 경계.
@@ -24,10 +23,10 @@ pub fn dump_stack() {
     // top은 경계 마커일 뿐 스택이 아니다(그 주소부터는 다른 .bss 변수).
     if esp < bottom || esp >= top {
         printk!(
-            "stack: ESP %p is outside %p, %p\n",
-            Arg::Hex(esp),
-            Arg::Hex(bottom),
-            Arg::Hex(top)
+            "stack: ESP {:08x} is outside {:08x}, {:08x}\n",
+            esp,
+            bottom,
+            top
         );
         return;
     }
@@ -36,22 +35,13 @@ pub fn dump_stack() {
     let total = top - bottom;
 
     printk!("=== Kernel stack ===\n");
-    printk!(
-        " bottom %p   top %p\n",
-        Arg::Hex(bottom),
-        Arg::Hex(top)
-    );
-    printk!(
-        " esp    %p   used %d / %d bytes\n",
-        Arg::Hex(esp),
-        Arg::Int(used as i32),
-        Arg::Int(total as i32)
-    );
+    printk!(" bottom {:08x}   top {:08x}\n", bottom, top);
+    printk!(" esp    {:08x}   used {} / {} bytes\n", esp, used, total);
 
     let mut addr = esp;
     let mut rows = 0;
     while addr < top && rows < MAX_ROWS {
-        printk!("%p: ", Arg::Hex(addr));
+        printk!("{:08x}: ", addr);
 
         // 16진 컬럼(워드 단위). 마지막 행이 짧으면 공백으로 채워 ASCII 컬럼을 정렬한다.
         let mut w = 0;
@@ -59,7 +49,7 @@ pub fn dump_stack() {
             let a = addr + w * 4;
             if a + 4 <= top {
                 let v = unsafe { *(a as *const u32) };
-                printk!("%p ", Arg::Hex(v));
+                printk!("{:08x} ", v);
             } else {
                 printk!("         ");
             }
@@ -81,7 +71,7 @@ pub fn dump_stack() {
             } else {
                 b' '
             };
-            printk!("%c", Arg::Char(c));
+            printk!("{}", c as char);
             b += 1;
         }
         printk!("|\n");
@@ -91,9 +81,6 @@ pub fn dump_stack() {
     }
 
     if addr < top {
-        printk!(
-            " ... %d more bytes not shown\n",
-            Arg::Int((top - addr) as i32)
-        );
+        printk!(" ... {} more bytes not shown\n", top - addr);
     }
 }
