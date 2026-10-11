@@ -65,6 +65,8 @@ stack_top:
 # 지금은 엔트리 0만 써서 가상 0~4MB → 물리 0~4MB(identity)로 매핑
 .section .data
 .align 4096 # CR3가 가르키는 주소는 4KB 정렬
-boot_page_directory:
-    .long 0x00000083 # 엔트리 0: 0000 0000 1000 0011 (P | RW | PS)
-    .fill 1023, 4, 0 # 엔트리 1 - 1023: 나머지 페이지 테이블 항목은 모두 0으로 초기화
+boot_page_directory: # 이하 Page Directory(P.D.)
+    .long 0x00000083 # PD[0]: 0000 0000 00 (...) 1000 0011 (P | RW | PS)
+    .fill 767, 4, 0 # PD[1 - 767]: 0으로 초기화
+    .long 0x00000083 # PD[768]: 0000 0000 00 (...) 1000 0011 (P | RW | PS)
+    .fill 255, 4, 0 # PD[769 - 1023]: 0으로 초기화
