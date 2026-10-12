@@ -1,3 +1,5 @@
+use crate::mm::phys_to_virt;
+
 #[repr(C)]
 #[allow(dead_code)]
 pub struct GlobalDescriptorTable {
@@ -77,9 +79,9 @@ mod access {
     const CODE_DATA: u8 = 1 << 4; // 0: 시스템 세그먼트, 1: 코드/데이터 세그먼트 0x10
     const EXEC: u8 = 1 << 3; // 1: 실행 가능, 0: 실행 불가능 0x08
     const DC: u8 = 1 << 2; // 데이터(E=0) → Direction: 0=expand-up, 1=expand-down
-                           //코드(E=1) → Conforming: 0=이 DPL에서만, 1=같거나 낮은 특권도 실행 가능
+    //코드(E=1) → Conforming: 0=이 DPL에서만, 1=같거나 낮은 특권도 실행 가능
     const RW: u8 = 1 << 1; // 데이터 세그먼트 - 1: 읽기/쓰기 가능, 0: 읽기 전용
-                           // 코드 세그먼트 - 1: 읽기 가능, 0: 읽기 불가능 0x02
+    // 코드 세그먼트 - 1: 읽기 가능, 0: 읽기 불가능 0x02
     const ACCESSED: u8 = 1 << 0; // 1: 접근됨, 0: 접근 안됨 0x01 -> OS 단에서 초기화 시 항상 0으로 설정
 
     pub const KERNEL_CODE: u8 = PRESENT | DPL_RING0 | CODE_DATA | EXEC | RW; // 0x9A
@@ -145,9 +147,18 @@ const _: () = {
         core::mem::size_of::<Gdtr>() == 6,
         "Gdtr must be 6 bytes (packed)"
     );
-    assert!(selector::KERNEL_CODE == 0x08, "KERNEL_CODE selector must be 0x08");
-    assert!(selector::KERNEL_DATA == 0x10, "KERNEL_DATA selector must be 0x10");
-    assert!(selector::KERNEL_STACK == 0x18, "KERNEL_STACK selector must be 0x18");
+    assert!(
+        selector::KERNEL_CODE == 0x08,
+        "KERNEL_CODE selector must be 0x08"
+    );
+    assert!(
+        selector::KERNEL_DATA == 0x10,
+        "KERNEL_DATA selector must be 0x10"
+    );
+    assert!(
+        selector::KERNEL_STACK == 0x18,
+        "KERNEL_STACK selector must be 0x18"
+    );
 };
 
 pub fn init_gdt() {
@@ -163,11 +174,11 @@ pub fn init_gdt() {
 
     let gdtr = Gdtr {
         limit: (core::mem::size_of::<GlobalDescriptorTable>() - 1) as u16,
-        base: 0x800,
+        base: phys_to_virt(0x800),
     };
 
     unsafe {
-        core::ptr::write(0x800 as *mut GlobalDescriptorTable, gdt);
+        core::ptr::write(phys_to_virt(0x800) as *mut GlobalDescriptorTable, gdt);
         core::arch::asm!(
             "lgdt [{0}]",
             in(reg) &gdtr
