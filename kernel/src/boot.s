@@ -53,6 +53,9 @@ _start:
 # 여기부터 가상 주소(0xC01xxxxx)에서 실행
 .section .text
 higher_half:
+    # 5: identity 매핑(PD[0]) 제거
+    # 이제 높은 주소에서 실행 중이므로 PD[0]은 필요 없다.
+    # 남겨 두면 가상 0~4MB가 계속 접근 가능해 널 포인터 접근이 잡히지 않는다.
     movl $0, boot_page_directory
     mov %cr3, %ecx 
     mov %ecx, %cr3
