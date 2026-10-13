@@ -53,6 +53,10 @@ _start:
 # 여기부터 가상 주소(0xC01xxxxx)에서 실행
 .section .text
 higher_half:
+    movl $0, boot_page_directory
+    mov %cr3, %ecx 
+    mov %ecx, %cr3
+
     # 5: 스택을 잡고 Rust 진입 함수 호출 (cdecl: 인자는 오른쪽부터 push)
     mov $stack_top, %esp # 스택은 아래로 자라므로 꼭대기에서 시작 (가상 주소)
     push %ebx            # 두 번째 인자: info (Multiboot 정보 구조체의 물리 주소)
