@@ -1,6 +1,7 @@
+use crate::mm::phys_to_virt;
 use kernel_utils::memmove;
 
-const VGA_BUFFER: *mut u16 = 0xb8000 as *mut u16; // u16으로 하는 이유는 2바이트로 구성된 문자와 속성을 함께 저장하기 위해서, 즉, 포인터 최소 단위와 글자 단위를 맞추기 위함
+const VGA_BUFFER: *mut u16 = phys_to_virt(0xb8000) as *mut u16; // u16으로 하는 이유는 2바이트로 구성된 문자와 속성을 함께 저장하기 위해서, 즉, 포인터 최소 단위와 글자 단위를 맞추기 위함
 
 const DEFAULT_COLOR: u8 = 0x0f;
 

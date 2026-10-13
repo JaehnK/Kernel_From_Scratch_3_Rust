@@ -1,3 +1,4 @@
+use crate::mm::phys_to_virt;
 use core::fmt;
 
 const MULTIBOOT_MAGIC: u32 = 0x2BADB002;
@@ -65,7 +66,7 @@ impl MultibootInfo {
         // SAFETY: magic이 0x2BADB002이면 Multiboot 스펙상 ebx(info)는
         // 로더가 만든 유효한 정보 구조체의 물리 주소다.
         // 이 영역은 pmm에서 예약해 덮어쓰지 않으므로 'static으로 다룬다.
-        Ok(unsafe { &*(info as *const MultibootInfo) })
+        Ok(unsafe { &*((phys_to_virt(info)) as *const MultibootInfo) })
     }
 
     #[expect(dead_code, reason = "feat/pmm에서 사용 예정")]
